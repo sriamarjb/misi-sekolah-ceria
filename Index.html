@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Misi Sekolah Ceria</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:system-ui,sans-serif;color:#17233c}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.hide{display:none!important}
+.screen{width:100%;height:100%}.card{background:#fff;border:5px solid #fff;border-radius:30px;box-shadow:0 15px 45px #17456a55}
+.startcard{width:min(520px,94vw);padding:30px;text-align:center}.bag{font-size:70px}h1{font-size:clamp(28px,6vw,48px);color:#1768bd;margin:5px 0}h3{margin:0 0 25px}.startcard label{text-align:left;display:block;font-weight:800}.startcard input{width:100%;padding:13px;border:3px solid #9bdcff;border-radius:16px;margin:6px 0 16px;outline:0}
+.startcard button,.modal button{border:0;border-radius:16px;padding:13px 25px;background:#ffd044;color:#513900;font-weight:900;box-shadow:0 4px 0 #d99c16}.startcard small{display:block;margin-top:18px;opacity:.7}
+#start,#levels{display:grid;place-items:center;padding:20px;background:linear-gradient(#8edcff 0 55%,#79ca69 55%)}
+#game{position:relative;background:#8edcff}canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* Pilih tahap */
+.levelcard{width:min(560px,94vw);max-height:92vh;overflow:auto;padding:24px;text-align:center}.levelcard h2{margin:0;color:#1768bd}.sub{margin:6px 0 16px;opacity:.75;font-weight:600}
+.levelList{display:grid;gap:12px}.lvl{display:flex;align-items:center;gap:14px;text-align:left;width:100%;border:4px solid var(--c);border-radius:20px;background:#fff;padding:12px 14px;box-shadow:0 5px 0 var(--c)}
+.lvl .ic{font-size:40px}.lvl b{font-size:20px;color:var(--c)}.lvl small{display:block;opacity:.75;font-weight:600}.lvl .st{margin-left:auto;font-size:18px;white-space:nowrap}
+.lvl.locked{filter:grayscale(1);opacity:.55;box-shadow:none}
+
+/* HUD */
+.hud{position:absolute;z-index:5;top:12px;left:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap}.hud span,.hud button{background:#ffffffea;border:3px solid white;border-radius:16px;padding:8px 12px;font-weight:900;box-shadow:0 5px 15px #0002}.hud button{margin-left:auto;width:48px;padding:0}
+.hint{position:absolute;z-index:6;font-size:34px;transform:translate(-50%,-50%);animation:bob .8s infinite alternate;pointer-events:none}@keyframes bob{to{transform:translate(-50%,-70%)}}
+.voice{position:absolute;z-index:30;left:50%;top:70px;transform:translateX(-50%);background:#fff;border:4px solid #3287e8;border-radius:20px;padding:10px 18px;box-shadow:0 8px 25px #0002}
+.mic{position:absolute;z-index:30;left:50%;bottom:110px;transform:translateX(-50%);background:#17233cee;color:#fff;border-radius:18px;padding:12px 18px;font-weight:900;animation:pulse 1s infinite alternate}@keyframes pulse{to{background:#d9365fee}}
+.toast{position:absolute;z-index:12;left:50%;top:120px;transform:translateX(-50%);background:#17233cdd;color:#fff;padding:10px 16px;border-radius:14px;font-weight:800;max-width:90vw;text-align:center}
+.joy{position:absolute;z-index:9;left:18px;bottom:18px;width:105px;height:105px;border-radius:50%;background:#ffffff55;border:3px solid #fff;touch-action:none}.joy i{position:absolute;left:31px;top:31px;width:40px;height:40px;border-radius:50%;background:#3287e8;box-shadow:0 4px 10px #0004}
+.act{position:absolute;z-index:9;right:20px;bottom:20px;width:78px;height:78px;border-radius:50%;border:4px solid white;background:#ff6b9d;box-shadow:0 6px 0 #c94873;font-size:30px}
+
+/* Modal */
+.modal{position:absolute;z-index:20;left:50%;top:50%;transform:translate(-50%,-50%);width:min(470px,92vw);max-height:92vh;overflow:auto;padding:26px;text-align:center;background:#fffffff7;border:5px solid white;border-radius:28px;box-shadow:0 20px 60px #0004}
+.modal>div:first-child{font-size:55px}.modal h2{margin:5px}.modal p{font-size:18px;font-weight:700;line-height:1.4}.modal strong{font-size:56px;color:#1673cf;display:block}
+.modal button.alt{background:#e6f2ff;color:#1768bd;box-shadow:0 4px 0 #9bc3ee}
+.rbtns{display:grid;gap:10px}.stars{font-size:44px!important;letter-spacing:4px}
+
+/* Panel perbualan */
+.talk .who{font-size:22px!important;display:flex;align-items:center;justify-content:center;gap:6px}.talk .who span{font-size:40px}
+.req{background:#eef7ff;border:3px dashed #9bdcff;border-radius:16px;padding:12px;margin:10px 0}
+.timer{height:12px;background:#e6e6e6;border-radius:8px;overflow:hidden;margin:4px 0 10px}.timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff6b6b,#ffd044,#45b978);transition:width .1s linear}
+.modal button.ghost{background:#fff;color:#1768bd;border:3px solid #9bdcff;box-shadow:none;padding:8px 16px;margin-bottom:10px}
+.opts{display:grid;gap:9px;margin:6px 0 12px}.modal .opts button{background:#fff;color:#17233c;border:3px solid #ffd044;box-shadow:0 4px 0 #d99c16;text-align:left;font-weight:700;padding:11px 14px}
+.modal .opts button.good{background:#c9f2cf;border-color:#45b978}.modal .opts button.bad{background:#ffd5d5;border-color:#ef6b6b}
+.modal button.micbtn{background:#ff6b9d;color:#fff;box-shadow:0 4px 0 #c94873;width:100%}
+.tip{display:block;margin-top:10px;color:#b4492b;font-weight:700;min-height:1em}
+
+@media(min-width:800px){.joy{opacity:.35}.act{opacity:.85}}
+@media(max-width:600px){.modal{padding:18px}.modal p{font-size:16px}.hud{top:7px;left:7px;right:7px;gap:5px}.hud span{font-size:13px;padding:7px 9px}.hud button{width:40px}}
+/* ---- Tambahan Apps Script: daftar, log masuk, papan juara ---- */
+.startcard{max-height:94vh;overflow:auto}.startcard label{margin-top:4px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.startcard .tab{background:#e6f2ff;color:#1768bd;box-shadow:0 4px 0 #9bc3ee;padding:11px 8px}.startcard .tab.on{background:#1768bd;color:#fff;box-shadow:0 4px 0 #0e4a8a}
+.startcard #btnDaftar{width:100%}
+.hasil{display:grid;gap:8px;margin-bottom:6px}
+.pilihNama{display:block;width:100%;text-align:left;border:3px solid #9bdcff!important;background:#fff!important;color:#17233c!important;box-shadow:0 4px 0 #9bdcff!important;border-radius:16px;padding:10px 14px;font-weight:800}
+.pilihNama small{display:block;font-weight:600;opacity:.7;margin:0}
+.msg{min-height:1.2em;color:#c0392b;font-weight:800;margin:12px 0 0}.msg.ok{color:#2e8b57}
+.who2{margin:2px 0 0;font-weight:800;color:#555}
+.maprow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.alt2{border:0;border-radius:16px;padding:12px 10px;background:#e6f2ff;color:#1768bd;font-weight:900;box-shadow:0 4px 0 #9bc3ee}
+.juara{text-align:left;padding:0;list-style:none;font-weight:700;margin:8px 0 16px}.juara li{padding:8px 10px;border-radius:12px;margin:4px 0;background:#f3f8ff}.juara li.me{background:#fff3c4;border:2px solid #ffd044}
+.saveinfo{display:block;margin:-6px 0 12px;font-weight:700;opacity:.8}
+.loading{position:fixed;inset:0;z-index:99;background:#17233c88;display:grid;place-content:center;text-align:center;color:#fff;font-size:20px}.loading div{font-size:50px;animation:bob .6s infinite alternate}
+
+/* Avatar */
+.avGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;margin:6px 0 16px;max-height:260px;overflow:auto;padding:4px}
+.avGrid button{background:#f3f8ff;border:3px solid #dcebff;border-radius:16px;padding:2px 0 0;box-shadow:none;cursor:pointer}
+.avGrid button.on{background:#fff3c4;border-color:#ffd044;transform:scale(1.06)}
+.avGrid canvas{width:60px;height:66px;display:block;margin:auto}.avGrid small{display:block;font-size:11px;font-weight:800;margin:0 0 4px;opacity:.75}
+.avMe{border:0;background:none;padding:0;margin:0 auto -4px;display:block}.avMe canvas{width:72px;height:80px;display:block;margin:auto}.avMe small{font-weight:800;color:#1768bd}
+#avBox{z-index:40}
+.hud .exitBtn{margin-left:0;background:#ffe1e1}
+.avGrid canvas,.avMe canvas{position:static;inset:auto}
+
+/* Akses guru */
+.guruLink{margin-top:14px;background:none!important;box-shadow:none!important;color:#1768bd!important;font-weight:800!important;text-decoration:underline;padding:6px!important}
+#guruBox input{width:100%;padding:13px;border:3px solid #9bdcff;border-radius:16px;margin:8px 0 4px;outline:0;font-size:18px;text-align:center}
+#guruBox{z-index:40}
+/* Skrin guru */
+#guru{overflow:auto;background:#eef6ff;padding:16px;font-size:14px}
+.gHead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.gHead h1{font-size:24px;margin:0}.gHead h1 small{display:block;font-size:13px;color:#555}
+.gBtns{display:flex;gap:8px;flex-wrap:wrap}.gBtns button,.gModal>button{border:0;border-radius:12px;padding:10px 14px;background:#fff;color:#1768bd;font-weight:800;box-shadow:0 3px 0 #9bc3ee}
+.gBtns #gKeluar{background:#ffe1e1;color:#b4492b;box-shadow:0 3px 0 #f2b3b3}
+.gCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.gCards div{background:#fff;border-radius:16px;padding:14px;box-shadow:0 4px 14px #17456a1a}.gCards b{display:block;font-size:30px;color:#1768bd}.gCards span{font-weight:700;opacity:.7}
+.gPanel{background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 14px #17456a1a;margin-bottom:14px}.gPanel h2{font-size:18px;margin:0 0 10px}.gPanel h2 small{font-weight:600;opacity:.6;font-size:13px}
+.gFilter{display:flex;flex-wrap:wrap;gap:8px}.gFilter select,.gFilter input{padding:9px 10px;border:2px solid #cfe3f7;border-radius:10px;font:inherit;min-width:140px;flex:1}
+.gNote{margin:8px 0;opacity:.65;font-weight:600;font-size:13px!important}
+.gTableWrap{overflow:auto;max-height:60vh}
+.gTable{width:100%;border-collapse:collapse;white-space:nowrap}.gTable th{position:sticky;top:0;background:#1768bd;color:#fff;padding:8px;text-align:left;cursor:pointer;font-size:13px}
+.gTable td{padding:7px 8px;border-bottom:1px solid #e6eef7;vertical-align:middle}.gTable tbody tr:nth-child(even){background:#f7fbff}
+.gTable td.nm{font-weight:800;color:#1768bd;cursor:pointer;display:flex;align-items:center;gap:6px}.gTable td.nm canvas{width:28px;height:31px;position:static}
+.gTable td.wrap{white-space:normal;min-width:150px}
+.tg{display:inline-block;padding:2px 8px;border-radius:8px;font-weight:800;font-size:12px}.tg.ok{background:#c9f2cf;color:#1e7a3c}.tg.no{background:#ffd5d5;color:#a33}.tg.none{background:#eee;color:#888}
+.pct{font-weight:800}.pct.low{color:#c0392b}.pct.mid{color:#d98200}.pct.high{color:#1e7a3c}
+.gModal{position:fixed;width:min(1150px,97vw);text-align:left;z-index:50}.gModal h2{margin:0}.gModal h3{margin:14px 0 6px}.gModal>button{margin-top:14px}
+.msg{overflow-wrap:anywhere}
+.maprow .full{grid-column:1/-1}
+</style>
+</head>
+<body>
+<!-- SKRIN 1: DAFTAR / LOG MASUK (BARU) -->
+<div id="start" class="screen">
+  <div class="card startcard">
+    <div class="bag">🎒</div><h1>MISI SEKOLAH CERIA</h1><h3>Bahasa Melayu Tahun 2</h3>
+    <div class="tabs">
+      <button id="tabLogin" class="tab on">🔑 LOG MASUK</button>
+      <button id="tabDaftar" class="tab">📝 DAFTAR</button>
+    </div>
+
+    <!-- Log masuk: taip nama, pilih nama sendiri -->
+    <div id="paneLogin">
+      <label for="cari">Taip nama kamu</label>
+      <input id="cari" maxlength="40" placeholder="Contoh: AINA" autocomplete="off">
+      <div id="hasilCari" class="hasil"></div>
+      <small id="cariInfo">Taip sekurang-kurangnya 2 huruf. Belum berdaftar? Tekan 📝 DAFTAR.</small>
+    </div>
+
+    <!-- Daftar murid baharu -->
+    <div id="paneDaftar" class="hide">
+      <label for="dNama">Nama penuh</label><input id="dNama" maxlength="60" placeholder="Taip nama penuh" autocomplete="off">
+      <label for="dKelas">Kelas</label><input id="dKelas" maxlength="30" placeholder="Contoh: 2 BESTARI" autocomplete="off">
+      <label for="dSekolah">Sekolah</label><input id="dSekolah" maxlength="80" placeholder="Contoh: SK SRI AMAR" autocomplete="off">
+      <label>Pilih avatar kegemaran kamu</label>
+      <div id="avDaftar" class="avGrid"></div>
+      <button id="btnDaftar">✅ DAFTAR & MULA</button>
+    </div>
+    <p id="authMsg" class="msg"></p>
+    <button id="btnGuru" class="guruLink">👩‍🏫 Akses Guru</button>
+  </div>
+  <!-- Log masuk guru -->
+  <div id="guruBox" class="modal hide"><div>👩‍🏫</div><h2>Akses Guru</h2>
+    <input id="guruPw" type="password" placeholder="Kata laluan" autocomplete="off">
+    <p id="guruMsg" class="msg"></p>
+    <div class="rbtns"><button id="guruMasuk">MASUK</button><button id="guruBatal" class="alt">BATAL</button></div></div>
+</div>
+
+<!-- SKRIN 2: PILIH TAHAP -->
+<div id="levels" class="screen hide">
+  <div class="card levelcard">
+    <button id="btnAvatar" class="avMe" aria-label="Tukar avatar"><canvas id="avMe" width="90" height="100"></canvas><small>🎨 Tukar</small></button>
+    <h2>Hai, <span id="hello">Murid</span>! 👋</h2>
+    <p class="who2"><span id="helloKelas"></span></p>
+    <p class="sub">Pilih tahap. Dapatkan sekurang-kurangnya ⭐⭐ untuk buka tahap seterusnya.</p>
+    <div id="levelList" class="levelList"></div>
+    <div class="maprow">
+      <button id="btnSuara" class="alt2 full">🗣️ SUARA: BM MALAYSIA</button>
+      <button id="btnJuara" class="alt2">🏆 PAPAN JUARA</button>
+      <button id="btnKeluar" class="alt2">🚪 LOG KELUAR</button>
+    </div>
+  </div>
+  <!-- Tukar avatar -->
+  <div id="avBox" class="modal hide"><h2>🎨 Pilih Avatar</h2>
+    <div id="avTukar" class="avGrid"></div>
+    <div class="rbtns"><button id="avSimpan">✅ SIMPAN</button><button id="avBatal" class="alt">BATAL</button></div></div>
+  <!-- Papan Juara -->
+  <div id="juara" class="modal hide"><div>🏆</div><h2>Papan Juara</h2><p class="sub" id="juaraSek"></p>
+    <ol id="juaraList" class="juara"></ol><button id="juaraTutup">TUTUP</button></div>
+</div>
+
+<!-- SKRIN 3: DUNIA PERMAINAN (dikekalkan) -->
+<div id="game" class="screen hide">
+  <div class="hud">
+    <span id="lvlTag">🌱 Mudah</span>
+    <span>🎯 <b id="mission">1</b>/5</span>
+    <span>⭐ <b id="score">0</b></span>
+    <button id="mute" aria-label="Bunyi">🔊</button>
+    <button id="keluarTahap" class="exitBtn" aria-label="Keluar">🚪</button>
+  </div>
+  <canvas id="world"></canvas>
+  <div id="hint" class="hint hide">💬</div>
+  <div id="voice" class="voice hide">🔊 <b>•••</b></div>
+  <div id="mic" class="mic hide">🎙️ <span>Sekarang jawab...</span></div>
+  <div id="toast" class="toast hide"></div>
+  <div id="joy" class="joy"><i id="stick"></i></div><button id="act" class="act" aria-label="Bercakap">💬</button>
+
+  <div id="objective" class="modal hide"><div id="objIcon">👂</div><h2 id="objTitle">Tahap Mudah</h2>
+    <p id="objText"></p><button id="objok">✓ FAHAM</button></div>
+
+  <div id="talk" class="modal talk hide">
+    <div class="who"><span id="tIcon">👩‍🏫</span> <b id="tName">Guru</b></div>
+    <p id="tReq" class="req"></p>
+    <div id="timer" class="timer hide"><i id="timerBar"></i></div>
+    <button id="replay" class="ghost">🔁 Dengar semula <span id="replayLeft"></span></button>
+    <div id="opts" class="opts"></div>
+    <button id="speakBtn" class="micbtn">🎙️ Jawab dengan suara</button>
+    <small id="tTip" class="tip"></small>
+  </div>
+
+  <!-- Pengesahan keluar -->
+  <div id="exitBox" class="modal hide"><div>🚪</div><h2>Keluar dari tahap ini?</h2>
+    <p>Markah tahap ini tidak akan disimpan.</p>
+    <div class="rbtns"><button id="exitYa">YA, KELUAR</button><button id="exitTidak" class="alt">TIDAK, TERUSKAN</button></div></div>
+
+  <div id="feedback" class="modal hide"><div id="ficon">🌟</div><h2 id="ftitle">Syabas!</h2>
+    <p id="ftext"></p><button id="fok">TERUSKAN</button></div>
+
+  <div id="result" class="modal hide"><div>🏆</div><h2 id="rTitle">SELESAI!</h2>
+    <div id="stars" class="stars">⭐⭐⭐</div>
+    <strong id="final">0/50</strong><p id="message"></p>
+    <small id="saveInfo" class="saveinfo"></small>
+    <div class="rbtns">
+      <button id="nextLvl">➡ TAHAP SETERUSNYA</button>
+      <button id="again" class="alt">🔄 MAIN SEMULA</button>
+      <button id="toMap" class="alt">🗺️ PILIH TAHAP</button>
+    </div>
+  </div>
+</div>
+
+<div id="loading" class="loading hide"><div>⏳</div><b id="loadTxt">Sila tunggu...</b></div>
+
+<!-- SKRIN GURU: REKOD MURID (BARU) -->
+<div id="guru" class="screen hide">
+  <header class="gHead">
+    <h1>📊 Rekod Murid <small>Misi Sekolah Ceria</small></h1>
+    <div class="gBtns"><button id="gMuat">🔄 Muat semula</button><button id="gCsv">⬇️ Muat turun CSV</button><button id="gKeluar">🚪 Keluar</button></div>
+  </header>
+  <section class="gCards">
+    <div><b id="kDaftar">0</b><span>Murid berdaftar</span></div>
+    <div><b id="kMain">0</b><span>Sudah bermain</span></div>
+    <div><b id="kBelum">0</b><span>Belum bermain</span></div>
+    <div><b id="kCubaan">0</b><span>Tahap dimainkan</span></div>
+    <div><b id="kPurata">0</b><span>Purata markah / 50</span></div>
+  </section>
+  <section class="gPanel">
+    <div class="gFilter">
+      <select id="fSekolah"></select><select id="fKelas"></select>
+      <select id="fStatus"><option value="">Semua murid</option><option value="main">Sudah bermain</option><option value="belum">Belum bermain</option></select>
+      <input id="fCari" placeholder="🔎 Cari nama...">
+    </div>
+    <p class="gNote">Tekan nama murid untuk melihat jawapan penuh. Tekan tajuk lajur untuk susun.</p>
+    <div class="gTableWrap"><table class="gTable"><thead><tr>
+      <th>#</th><th data-k="nama">Nama</th><th data-k="kelas">Kelas</th><th data-k="mudah">🌱 Mudah</th><th data-k="sederhana">🌿 Sederhana</th><th data-k="sukar">🌳 Sukar</th><th data-k="jumlah">Jumlah /150</th><th data-k="main">Kali main</th><th data-k="terakhirMs">Terakhir main</th>
+    </tr></thead><tbody id="gBody"></tbody></table></div>
+  </section>
+  <section class="gPanel">
+    <h2>🧐 Analisis Soalan <small>(peratus jawapan betul paling rendah di atas)</small></h2>
+    <div class="gTableWrap"><table class="gTable"><thead><tr><th>Tahap</th><th>Watak</th><th>Permintaan</th><th>Betul</th><th>Salah</th><th>% Betul</th></tr></thead><tbody id="gSoalan"></tbody></table></div>
+  </section>
+
+  <div id="gDetail" class="modal gModal hide">
+    <h2 id="dNamaMurid">Nama</h2><p class="gNote" id="dInfo"></p>
+    <h3>Rekod tahap</h3>
+    <div class="gTableWrap"><table class="gTable"><thead><tr><th>Tarikh</th><th>Tahap</th><th>Markah</th><th>Bintang</th><th>Betul (1/2)</th><th>Tidak berjaya</th><th>Masa</th></tr></thead><tbody id="dRekod"></tbody></table></div>
+    <h3>Jawapan murid</h3>
+    <div class="gTableWrap"><table class="gTable"><thead><tr><th>Tarikh</th><th>Tahap</th><th>Watak</th><th>Permintaan</th><th>Cara</th><th>Jawapan murid</th><th>Keputusan</th></tr></thead><tbody id="dJawapan"></tbody></table></div>
+    <button id="dTutup">TUTUP</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =========================================================
+   ⚙️ TETAPAN GITHUB PAGES
+   Tampal URL Web App Apps Script (berakhir dengan /exec) di bawah.
+   Jika fail ini dibuka terus dari Apps Script, URL ini tidak digunakan.
+   ========================================================= */
+const API_URL = "TAMPAL_URL_WEB_APP_DI_SINI";
+
+/* =========================================================
+   MISI SEKOLAH CERIA — BM Tahun 2, SP 1.1.2(iv)
+   Mendengar, memahami dan memberikan respons terhadap permintaan.
+   Versi 2: 3 tahap (Mudah, Sederhana, Sukar) + pembaikan pepijat.
+   Semua soalan boleh diubah dalam bahagian 2 (TAHAP).
+   ========================================================= */
+
+/* ---------- 1. WATAK (kedudukan asal dikekalkan) ---------- */
+const NPC = [
+  { x: 290, y: 210, c: "#ed6878", icon: "👩‍🏫", n: "Guru" },
+  { x: 900, y: 210, c: "#7c70e8", icon: "📚", n: "Pustakawan" },
+  { x: 280, y: 475, c: "#f39a39", icon: "👧", n: "Kawan" },
+  { x: 900, y: 475, c: "#45b978", icon: "🍎", n: "Penjual kantin" },
+  { x: 600, y: 330, c: "#e9a62c", icon: "🧑‍🏫", n: "Pengawas" }
+];
+
+/* Kata tanda setuju & tanda menolak (untuk semak jawapan suara) */
+const SETUJU = ["baik", "baiklah", "boleh", "ya", "okey", "ok", "okay", "tentu", "sudah tentu", "sedia", "insya allah", "insyaallah"];
+const TOLAK = ["tidak", "tak", "taknak", "tak nak", "tak mahu", "tidak mahu", "enggan", "malas", "malaslah", "jangan", "tak payah", "suka hati"];
+
+/* ---------- 2. TAHAP & SOALAN ----------
+   npc     : watak (0 Guru, 1 Pustakawan, 2 Kawan, 3 Kantin, 4 Pengawas)
+   q       : permintaan yang dibacakan
+   aksi    : kumpulan kata kunci tindakan. Setiap kumpulan MESTI disebut.
+   langkah : nama tindakan (untuk maklum balas jika murid terlupa)
+   betul   : contoh jawapan yang sesuai
+   salah   : pilihan jawapan pengganggu
+   larangan: perkataan tindakan yang BERTENTANGAN (jawapan suara dikira salah)
+   ------------------------------------------------------- */
+const TAHAP = [
+  {
+    id: "mudah", nama: "Mudah", ikon: "🌱", warna: "#45b978", ringkas: "Teks dipaparkan • pilih atau sebut jawapan",
+    info: "Baca dan dengar permintaan. Pilih jawapan yang sesuai atau jawab dengan suara.",
+    teks: true,        // teks permintaan dipaparkan
+    pilihan: true,     // butang pilihan jawapan dipaparkan
+    ulang: 99,         // had "dengar semula"
+    masa: 0,           // had masa (saat), 0 = tiada
+    syarat: "mudah",   // jawapan suara: setuju ATAU sebut tindakan
+    tugas: [
+      { npc: 0, q: "Tolong susun buku itu di atas meja.", larangan: ["makan", "main", "bermain", "biar", "biarlah", "sepah", "selerak", "buang"], aksi: [["susun", "menyusun", "buku"]], langkah: ["susun buku"],
+        betul: "Baik, cikgu. Saya susun buku itu.", salah: ["Saya mahu makan.", "Tidak mahu!"] },
+      { npc: 1, q: "Tolong pulangkan buku itu ke rak.", larangan: ["bermain", "main", "bola", "simpan", "bawa balik", "ambil", "koyak"], aksi: [["pulang", "rak"]], langkah: ["pulangkan buku"],
+        betul: "Baik, saya pulangkan buku ke rak.", salah: ["Saya suka bermain bola.", "Malaslah."] },
+      { npc: 2, q: "Boleh tolong ambilkan pensel saya?", larangan: ["hilang", "patah", "sorok", "buang", "pembaris", "pemadam"], aksi: [["ambil", "pensel"]], langkah: ["ambil pensel"],
+        betul: "Boleh. Ini pensel kamu.", salah: ["Pensel saya hilang.", "Saya tak nak."] },
+      { npc: 3, q: "Tolong buangkan sampah itu ke dalam tong.", larangan: ["biar", "biarlah", "sirap", "makan", "tepi", "lantai", "longkang", "sepak"], aksi: [["buang", "sampah", "tong"]], langkah: ["buang sampah"],
+        betul: "Baik, mak cik. Saya buang sampah ini.", salah: ["Saya mahu air sirap.", "Biarlah sampah itu di situ."] },
+      { npc: 4, q: "Tolong tutup pintu kelas sebelum kamu keluar.", larangan: ["balik", "buka", "membuka", "biar", "biarlah", "tingkap", "lampu"], aksi: [["tutup", "menutup", "pintu"]], langkah: ["tutup pintu"],
+        betul: "Baik, saya tutup pintu kelas.", salah: ["Saya mahu balik.", "Tak payahlah."] }
+    ]
+  },
+  {
+    id: "sederhana", nama: "Sederhana", ikon: "🌿", warna: "#f39a39", ringkas: "Dengar sahaja • setuju + sebut tindakan",
+    info: "Teks TIDAK dipaparkan. Dengar dengan teliti (boleh dengar semula 2 kali). Jawapan mesti setuju DAN menyebut tindakan.",
+    teks: false, pilihan: true, ulang: 2, masa: 0, syarat: "penuh",
+    tugas: [
+      { npc: 0, q: "Sila hantar buku latihan ini ke bilik guru.", larangan: ["simpan", "beg", "makan", "sendiri", "kantin", "buang", "rumah"], aksi: [["hantar", "menghantar", "bilik guru"]], langkah: ["hantar buku ke bilik guru"],
+        betul: "Baik, cikgu. Saya akan hantar ke bilik guru.", salah: ["Baik, cikgu. Saya simpan dalam beg saya.", "Saya sudah makan, cikgu.", "Hantar sendirilah."] },
+      { npc: 1, q: "Tolong bercakap perlahan di dalam perpustakaan.", larangan: ["jerit", "menjerit", "bising", "kuat", "kuatkan", "pinjam", "suka hati", "nyanyi", "menyanyi"], aksi: [["perlahan", "senyap", "diam"]], langkah: ["bercakap perlahan"],
+        betul: "Baik, puan. Saya akan bercakap perlahan.", salah: ["Baik, saya akan menjerit.", "Saya mahu pinjam buku cerita.", "Suka hati sayalah."] },
+      { npc: 2, q: "Boleh pinjamkan pemadam kamu sekejap?", larangan: ["pembaris", "pensel", "mahal", "tiada", "sorok", "buang", "jual"], aksi: [["pemadam", "ambil", "pinjam"]], langkah: ["beri pemadam"],
+        betul: "Boleh. Ambillah pemadam saya.", salah: ["Boleh. Ambillah pembaris saya.", "Pemadam itu mahal!", "Saya pun tiada pensel."] },
+      { npc: 3, q: "Tolong beratur dengan tertib, ya.", larangan: ["potong", "memotong", "lambat", "nasi", "lemak", "tolak", "menolak", "depan", "lari", "berlari", "rebut"], aksi: [["beratur", "baris", "tertib"]], langkah: ["beratur"],
+        betul: "Baik, mak cik. Saya beratur.", salah: ["Baik, saya potong barisan.", "Saya mahu nasi lemak dua.", "Lambatlah mak cik ni!"] },
+      { npc: 4, q: "Tolong pakai tali leher sebelum masuk ke kelas.", larangan: ["buka", "tanggal", "tanggalkan", "kasut", "panas", "biru", "simpan", "buang"], aksi: [["pakai", "tali leher"]], langkah: ["pakai tali leher"],
+        betul: "Baik, saya pakai tali leher sekarang.", salah: ["Baik, saya buka kasut.", "Tali leher saya warna biru.", "Tak naklah, panas."] }
+    ]
+  },
+  {
+    id: "sukar", nama: "Sukar", ikon: "🌳", warna: "#e85d65", ringkas: "Dua langkah • suara sahaja • had masa",
+    info: "Permintaan ada DUA langkah. Teks tidak dipaparkan, dengar semula sekali sahaja, dan ada had masa 25 saat. Jawab dengan suara: setuju dan sebut KEDUA-DUA tindakan.",
+    teks: false, pilihan: false, ulang: 1, masa: 25, syarat: "penuh",
+    tugas: [
+      { npc: 0, q: "Tolong padam papan tulis, kemudian susun kerusi di belakang kelas.", larangan: ["sahaja", "saja", "meja", "depan", "penat", "tulis di papan", "conteng"],
+        aksi: [["padam", "papan"], ["susun", "menyusun", "kerusi"]], langkah: ["padam papan tulis", "susun kerusi"],
+        betul: "Baik, cikgu. Saya padam papan tulis, kemudian susun kerusi.", salah: ["Baik, cikgu. Saya padam papan tulis sahaja.", "Baik, cikgu. Saya susun meja di depan.", "Saya penat, cikgu."] },
+      { npc: 1, q: "Sila tulis nama kamu dalam buku rekod, kemudian simpan beg di luar.", larangan: ["masuk", "bawa beg", "sahaja", "saja", "lupa", "tiada", "tak bawa"],
+        aksi: [["tulis", "nama"], ["simpan", "letak", "beg"]], langkah: ["tulis nama", "simpan beg"],
+        betul: "Baik, puan. Saya tulis nama, kemudian simpan beg di luar.", salah: ["Baik, puan. Saya bawa beg masuk.", "Baik, saya tulis nama sahaja.", "Saya tak bawa pensel, puan."] },
+      { npc: 2, q: "Boleh tolong angkat kotak ini dan bawa ke kelas dua Bestari?", larangan: ["sini", "situ", "jauh", "berat", "tinggal", "letak di sini", "buang", "sepak"],
+        aksi: [["angkat", "kotak"], ["bawa", "hantar", "kelas"]], langkah: ["angkat kotak", "bawa ke kelas"],
+        betul: "Boleh. Saya angkat kotak ini dan bawa ke kelas dua Bestari.", salah: ["Boleh. Saya letak kotak di sini.", "Kotak itu berat, saya tak nak.", "Kelas dua Bestari jauh."] },
+      { npc: 3, q: "Tolong basuh tangan dahulu, kemudian ambil pinggan di sana.", larangan: ["terus", "basuh pinggan", "lapar", "kenyang", "tak lapar", "sahaja", "saja", "tak payah"],
+        aksi: [["basuh", "cuci", "tangan"], ["ambil", "pinggan"]], langkah: ["basuh tangan", "ambil pinggan"],
+        betul: "Baik, mak cik. Saya basuh tangan, kemudian ambil pinggan.", salah: ["Baik, saya ambil pinggan terus.", "Baik, saya basuh pinggan.", "Saya tak lapar, mak cik."] },
+      { npc: 4, q: "Tolong matikan kipas dan tutup lampu sebelum keluar rehat.", larangan: ["sahaja", "saja", "buka", "bukakan", "hidupkan", "pasang", "tingkap", "biar", "biarlah"],
+        aksi: [["kipas"], ["lampu"]], langkah: ["matikan kipas", "tutup lampu"],
+        betul: "Baik, saya matikan kipas dan tutup lampu.", salah: ["Baik, saya tutup lampu sahaja.", "Baik, saya buka tingkap.", "Biarlah kipas itu."] }
+    ]
+  }
+];
+const MARKAH_CUBA1 = 10, MARKAH_CUBA2 = 5, CUBAAN = 2;
+
+/* ---------- 3. ELEMEN & KEADAAN ---------- */
+const $ = id => document.getElementById(id);
+const C = $("world"), X = C.getContext("2d");
+let W, H, D = 1, muted = false, audio, voices = [], speaking = false;
+let lvlIdx = 0, lvl = TAHAP[0], mission = 0, points = 0, attempts = 0, replayLeft = 0;
+let state = "start";          // start | map | intro | explore | talk | listen | feedback | result
+let active = null, afterFeedback = null, timeLeft = 0, timerId = null, toastId = null;
+const done = new Set();       // watak yang sudah selesai
+const player = { x: 600, y: 610, s: 3.3 }, keys = { u: 0, d: 0, l: 0, r: 0 };
+const particles = [];
+const recOK = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+const ttsOK = "speechSynthesis" in window;
+
+/* Data murid & rekod terbaik datang dari Google Sheet (Code.gs) */
+let murid = null, best = {}, stat = null, micBlocked = false, loopOn = false;
+const bintangTerbaik = id => (best[id] && best[id].bintang) || 0;
+const canMic = () => recOK && !micBlocked;
+const namaPendek = () => murid ? murid.nama.split(" ").slice(0, 2).join(" ") : "Murid";
+
+/* ---------- 4. LUKISAN (dunia asal dikekalkan) ---------- */
+if (!CanvasRenderingContext2D.prototype.roundRect) {   // sokongan pelayar lama
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2); this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath();
+  };
+}
+const buildings = [{x:115,y:110,w:270,h:180,c:"#ffd36b",r:"#e85d65",e:"📚"},{x:790,y:110,w:300,h:180,c:"#8fd5ff",r:"#6678dc",e:"📖"},{x:105,y:390,w:300,h:175,c:"#ffbd7a",r:"#ef7d3c",e:"🍎"},{x:795,y:390,w:300,h:175,c:"#9edc8c",r:"#48aa68",e:"🏀"}];
+function size(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;C.width=W*D;C.height=H*D;C.style.width=W+"px";C.style.height=H+"px";X.setTransform(D,0,0,D,0,0)}
+addEventListener("resize",size);size();
+function rr(x,y,w,h,r,f,s,l=1){X.beginPath();X.roundRect(x,y,w,h,r);X.fillStyle=f;X.fill();if(s){X.lineWidth=l;X.strokeStyle=s;X.stroke()}}
+function cloud(x,y,s){X.fillStyle="#ffffffd9";[[0,8,26],[22,0,32],[50,10,23],[70,15,18]].forEach(a=>{X.beginPath();X.arc(x+a[0]*s,y+a[1]*s,a[2]*s,0,7);X.fill()})}
+function tree(x,y,s){X.fillStyle="#8c5a36";X.fillRect(x-7*s,y+25*s,14*s,35*s);X.fillStyle="#48a85c";[[0,0,35],[-25,20,25],[25,22,25]].forEach(a=>{X.beginPath();X.arc(x+a[0]*s,y+a[1]*s,a[2]*s,0,7);X.fill()})}
+function char(x,y,col,icon,sel){X.save();X.translate(x,y);X.fillStyle="#0002";X.beginPath();X.ellipse(0,23,23,8,0,0,7);X.fill();rr(-18,-5,36,37,10,col);X.fillStyle="#ffd2ad";X.beginPath();X.arc(0,-20,17,0,7);X.fill();X.fillStyle="#3a2a25";X.beginPath();X.arc(0,-25,18,Math.PI,7);X.fill();X.fillStyle="#17233c";X.beginPath();X.arc(-6,-21,2.3,0,7);X.arc(6,-21,2.3,0,7);X.fill();X.font="20px serif";X.textAlign="center";X.fillText(icon,27,-8);if(sel){X.strokeStyle="#fff";X.lineWidth=4;X.setLineDash([6,4]);X.beginPath();X.arc(0,0,42,0,7);X.stroke();X.setLineDash([])}X.restore()}
+const npcPos = n => ({ x: n.x * W / 1200, y: n.y * H / 700 });
+function target() { return mission < 5 ? NPC[lvl.tugas[mission].npc] : null; }
+
+function draw(){
+  X.clearRect(0,0,W,H);X.fillStyle="#8edcff";X.fillRect(0,0,W,H*.44);X.fillStyle="#7acb69";X.fillRect(0,H*.44,W,H*.56);
+  cloud(W*.13,70,.9);cloud(W*.7,62,.8);cloud(W*.86,145,.55);
+  X.fillStyle="#e8c58c";X.beginPath();X.moveTo(W*.46,H*.44);X.lineTo(W*.54,H*.44);X.lineTo(W*.78,H);X.lineTo(W*.22,H);X.closePath();X.fill();
+  X.strokeStyle="#fff9";X.lineWidth=5;X.setLineDash([18,16]);X.beginPath();X.moveTo(W*.5,H*.45);X.lineTo(W*.5,H);X.stroke();X.setLineDash([]);
+  let sx=W/1200,sy=H/700,sc=Math.min(sx,sy);
+  buildings.forEach(b=>{let x=b.x*sx,y=b.y*sy,w=b.w*sx,h=b.h*sy;X.fillStyle="#0002";X.fillRect(x+10,y+12,w,h);X.fillStyle=b.c;X.fillRect(x,y,w,h);X.fillStyle=b.r;X.beginPath();X.moveTo(x-18,y);X.lineTo(x+w/2,y-65*sc);X.lineTo(x+w+18,y);X.closePath();X.fill();for(let i=0;i<3;i++)for(let j=0;j<2;j++)rr(x+35+i*70*sc,y+45+j*55*sc,38*sc,31*sc,5,"#d9f5ff","#fff",3);rr(x+w/2-24*sc,y+h-72*sc,48*sc,72*sc,5,"#8b6b55");X.font="38px serif";X.textAlign="center";X.fillText(b.e,x+w/2,y+28)});
+  [[50,250],[470,150],[710,145],[1150,255],[470,500],[730,515]].forEach(p=>tree(p[0]*sx,p[1]*sy,sc));
+  const tgt = target();
+  NPC.forEach(n => {
+    const p = npcPos(n), isT = n === tgt;
+    char(p.x, p.y, n.c, n.icon, isT);
+    X.font = "bold 13px system-ui"; X.fillStyle = "#17233cb0"; X.textAlign = "center"; X.fillText(n.n, p.x, p.y + 47);
+    if (done.has(n)) { X.font = "22px serif"; X.fillText("✅", p.x, p.y - 50); }
+    else if (isT && state === "explore") { X.font = "26px serif"; X.fillText("💬", p.x, p.y - 52); }
+  });
+  drawAvatar(X, player.x, player.y, murid ? murid.avatar : "m1", 1, true);
+  // Panduan anak panah kecil ke arah sasaran
+  if (tgt && state === "explore") {
+    const p = npcPos(tgt), a = Math.atan2(p.y - player.y, p.x - player.x), d = Math.hypot(p.y - player.y, p.x - player.x);
+    if (d > 110) { X.save(); X.translate(player.x + Math.cos(a) * 48, player.y + Math.sin(a) * 48); X.rotate(a);
+      X.fillStyle = "#ffd044"; X.strokeStyle = "#513900"; X.lineWidth = 2; X.beginPath(); X.moveTo(12, 0); X.lineTo(-8, -9); X.lineTo(-8, 9); X.closePath(); X.fill(); X.stroke(); X.restore(); }
+  }
+  // Konfeti
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const q = particles[i]; q.x += q.vx; q.y += q.vy; q.vy += .15; q.life--;
+    X.fillStyle = q.c; X.fillRect(q.x, q.y, 7, 7); if (q.life <= 0) particles.splice(i, 1);
+  }
+}
+function confetti() { for (let i = 0; i < 70; i++) particles.push({ x: W / 2, y: H / 2, vx: (Math.random() - .5) * 12, vy: -Math.random() * 9 - 2, life: 90, c: ["#ffd044", "#ff6b9d", "#45b978", "#3287e8", "#f39a39"][i % 5] }); }
+
+/* ---------- 4b. AVATAR (pilihan murid) ----------
+   m = murid (manusia), h = haiwan & watak comel. Disimpan dalam lajur "Avatar" sheet MURID. */
+const AVATAR = [
+  { id: "m1",  kulit: "#ffd2ad", gaya: "pendek",    rambut: "#3a2a25", baju: "#3186e5" },
+  { id: "m2",  kulit: "#f5c9a0", gaya: "tudung",    tudung: "#ff7eb6", baju: "#ff7eb6" },
+  { id: "m3",  kulit: "#ffe0bd", gaya: "tocang",    rambut: "#1d1d1d", baju: "#ffc93c", reben: "#ff5d73" },
+  { id: "m4",  kulit: "#e8b48a", gaya: "songkok",   rambut: "#2b1d18", baju: "#2fa86b" },
+  { id: "m5",  kulit: "#f5c9a0", gaya: "tudung",    tudung: "#4a90e2", baju: "#4a90e2", cermin: true },
+  { id: "m6",  kulit: "#a86b3c", gaya: "kerinting", rambut: "#1d1d1d", baju: "#f39a39" },
+  { id: "m7",  kulit: "#ffd2ad", gaya: "topi",      rambut: "#3a2a25", baju: "#e85d65", topi: "#e85d65" },
+  { id: "m8",  kulit: "#ffe0bd", gaya: "panjang",   rambut: "#6b3e26", baju: "#9b6bdf", reben: "#ffd044" },
+  { id: "m9",  kulit: "#e8b48a", gaya: "pendek",    rambut: "#1d1d1d", baju: "#14b8a6", cermin: true },
+  { id: "m10", kulit: "#f5c9a0", gaya: "tudung",    tudung: "#8e5bd8", baju: "#8e5bd8" },
+  { id: "m11", kulit: "#a86b3c", gaya: "tocang",    rambut: "#1d1d1d", baju: "#45b978", reben: "#ffd044" },
+  { id: "m12", kulit: "#ffd2ad", gaya: "topi",      rambut: "#1d1d1d", baju: "#1768bd", topi: "#ffd044" },
+  { id: "h1", emoji: "🐱", nama: "Kucing",   baju: "#ffb347" },
+  { id: "h2", emoji: "🐰", nama: "Arnab",    baju: "#ffc0d9" },
+  { id: "h3", emoji: "🐼", nama: "Panda",    baju: "#5f6b7a" },
+  { id: "h4", emoji: "🐯", nama: "Harimau",  baju: "#f39a39" },
+  { id: "h5", emoji: "🐘", nama: "Gajah",    baju: "#8fa3b8" },
+  { id: "h6", emoji: "🐢", nama: "Penyu",    baju: "#45b978" },
+  { id: "h7", emoji: "🦖", nama: "Dinosaur", baju: "#2fa86b" },
+  { id: "h8", emoji: "🦄", nama: "Unikorn",  baju: "#c58cf0" },
+  { id: "h9", emoji: "🐵", nama: "Monyet",   baju: "#a0703c" },
+  { id: "h10", emoji: "🤖", nama: "Robot",   baju: "#7f8ea3" }
+];
+const avatarById = id => AVATAR.find(a => a.id === id) || AVATAR[0];
+
+// Lukis avatar pada mana-mana canvas (dunia permainan & butang pilihan)
+function drawAvatar(g, x, y, id, s, badge) {
+  const a = avatarById(id), P = Math.PI;
+  const bulat = (cx, cy, r, f) => { g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fillStyle = f; g.fill(); };
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.fillStyle = "#0002"; g.beginPath(); g.ellipse(0, 23, 23, 8, 0, 0, 7); g.fill();
+  g.beginPath(); g.roundRect(-18, -5, 36, 37, 10); g.fillStyle = a.baju; g.fill();          // badan / baju
+  if (a.emoji) {                                                                               // haiwan
+    g.font = "38px serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(a.emoji, 0, -20);
+  } else {
+    if (a.gaya === "tudung") {                                                                 // tudung
+      bulat(0, -20, 21, a.tudung);
+      g.beginPath(); g.moveTo(-21, -18); g.quadraticCurveTo(0, 14, 21, -18); g.lineTo(18, 4); g.lineTo(-18, 4); g.closePath(); g.fillStyle = a.tudung; g.fill();
+      g.beginPath(); g.ellipse(0, -18, 12.5, 13.5, 0, 0, 7); g.fillStyle = a.kulit; g.fill();
+    } else {
+      if (a.gaya === "panjang") { g.fillStyle = a.rambut; g.fillRect(-19, -26, 9, 28); g.fillRect(10, -26, 9, 28); }
+      if (a.gaya === "tocang") { bulat(-20, -24, 7, a.rambut); bulat(20, -24, 7, a.rambut); bulat(-25, -18, 5, a.rambut); bulat(25, -18, 5, a.rambut); }
+      bulat(0, -20, 17, a.kulit);                                                              // muka
+      if (a.gaya === "kerinting") { [-15, -9, -3, 3, 9, 15].forEach(dx => bulat(dx, -33 + Math.abs(dx) / 2.5, 6, a.rambut)); }
+      else { g.beginPath(); g.arc(0, -25, 18, P, 7); g.fillStyle = a.rambut; g.fill(); }         // rambut
+      if (a.gaya === "songkok") { g.fillStyle = "#1d1d1d"; g.beginPath(); g.roundRect(-15, -44, 30, 15, 3); g.fill(); }
+      if (a.gaya === "topi") { g.beginPath(); g.arc(0, -27, 17, P, 7); g.fillStyle = a.topi; g.fill(); g.beginPath(); g.roundRect(0, -30, 25, 5, 3); g.fill(); }
+      if (a.reben) { g.fillStyle = a.reben; g.beginPath(); g.moveTo(10, -40); g.lineTo(2, -46); g.lineTo(2, -34); g.closePath(); g.moveTo(10, -40); g.lineTo(18, -46); g.lineTo(18, -34); g.closePath(); g.fill(); }
+    }
+    bulat(-6, -19, 2.4, "#17233c"); bulat(6, -19, 2.4, "#17233c");                            // mata
+    bulat(-10, -13, 2.6, "#ff9aa266"); bulat(10, -13, 2.6, "#ff9aa266");                        // pipi
+    g.strokeStyle = "#17233c"; g.lineWidth = 1.6; g.beginPath(); g.arc(0, -13, 4.5, .15 * P, .85 * P); g.stroke(); // senyum
+    if (a.cermin) { g.lineWidth = 1.8; g.beginPath(); g.arc(-6, -19, 5, 0, 7); g.moveTo(11, -19); g.arc(6, -19, 5, 0, 7); g.moveTo(-1, -19); g.lineTo(1, -19); g.stroke(); }
+  }
+  if (badge) { g.font = "18px serif"; g.textAlign = "center"; g.textBaseline = "alphabetic"; g.fillText("🎒", 25, 8); }
+  g.restore();
+}
+
+// Bina grid pilihan avatar
+function binaGridAvatar(box, pilihan, onPilih) {
+  box.innerHTML = "";
+  AVATAR.forEach(a => {
+    const b = document.createElement("button"); b.type = "button"; b.className = a.id === pilihan ? "on" : "";
+    const cv = document.createElement("canvas"); cv.width = 120; cv.height = 132;
+    const g = cv.getContext("2d"); drawAvatar(g, 60, 80, a.id, 1.55, false);
+    b.appendChild(cv);
+    if (a.nama) { const sm = document.createElement("small"); sm.textContent = a.nama; b.appendChild(sm); }
+    b.onclick = () => { box.querySelectorAll("button").forEach(x => x.classList.remove("on")); b.classList.add("on"); onPilih(a.id); };
+    box.appendChild(b);
+  });
+}
+function lukisAvatarSaya() {
+  const cv = $("avMe"), g = cv.getContext("2d"); g.clearRect(0, 0, cv.width, cv.height);
+  drawAvatar(g, 45, 62, murid ? murid.avatar : "m1", 1.2, false);
+}
+
+/* ---------- 5. SUARA ---------- */
+/* Suara Bahasa Melayu Malaysia.
+   Mod "google": suara BM Malaysia dijana oleh Code.gs (sama pada semua peranti).
+   Mod "peranti": suara peranti, HANYA suara ms-MY (tidak guna suara Indonesia).
+   Jika suara Google gagal, sistem guna suara peranti secara automatik. */
+let modSuara = "google";
+const jantina = "perempuan";   // suara perempuan sahaja
+try { modSuara = localStorage.getItem("msc_suara") || "google"; } catch (e) {}
+const lelaki = () => jantina === "lelaki";
+const audioBM = new Audio(), cacheSuara = new Map();
+let suaraNo = 0, googleGagal = false;   // jika suara Google gagal sekali, terus guna suara peranti
+if (ttsOK) { const lv = () => voices = speechSynthesis.getVoices(); lv(); speechSynthesis.onvoiceschanged = lv; }
+function suaraPeranti() {
+  const ms = voices.filter(v => /^ms([-_]MY)?$/i.test(v.lang || "") || /Malay|Melayu/i.test(v.name || ""));
+  // Ikut jantina: Microsoft Osman (lelaki) / Yasmin (perempuan); jika tiada, guna suara BM yang ada
+  const ikutJantina = ms.find(v => lelaki() ? /Osman|Male|Lelaki/i.test(v.name) : /Yasmin|Female|Perempuan/i.test(v.name));
+  return ikutJantina || ms.find(v => /Natural/i.test(v.name)) || ms.find(v => /Google/i.test(v.name)) || ms[0] || null;
+}
+// Adakah suara peranti yang dipilih memang sama jantina? Jika tidak, nada diubah.
+const suaraIkutJantina = v => v && (lelaki() ? /Osman|Male|Lelaki/i.test(v.name) : !/Osman|Male|Lelaki/i.test(v.name));
+function ambilSuara(text) {   // minta audio dari Code.gs (disimpan dalam cache)
+  const laju = lelaki() ? 1 : 0.9, k = laju + "|" + text;
+  if (!cacheSuara.has(k)) cacheSuara.set(k, run("suaraMelayu", text, laju).catch(e => { cacheSuara.delete(k); throw e; }));
+  return cacheSuara.get(k);
+}
+function prefetchSuara(list) { if (modSuara === "google" && !googleGagal && !muted) list.forEach(t => ambilSuara(sebutan(t)).catch(() => {})); }
+function stopSpeech() {
+  suaraNo++; try { audioBM.pause(); } catch (e) {}
+  if (ttsOK) speechSynthesis.cancel();
+  speaking = false; $("voice").classList.add("hide");
+}
+// Perkataan HURUF BESAR (contoh nama "NUR AINA") dibaca huruf demi huruf oleh enjin suara.
+// Tukar kepada huruf biasa sebelum dibacakan: "NUR AINA" -> "Nur Aina".
+function sebutan(t) { return String(t).replace(/\p{Lu}[\p{Lu}'’-]+/gu, w => w.charAt(0) + w.slice(1).toLowerCase()); }
+function speak(text, cb) {
+  text = sebutan(text);
+  stopSpeech();
+  if (muted) { cb?.(); return; }
+  const no = suaraNo; speaking = true; $("voice").classList.remove("hide");
+  let finished = false;
+  const end = () => { if (finished || no !== suaraNo) return; finished = true; speaking = false; $("voice").classList.add("hide"); cb?.(); };
+  if (modSuara === "google" && !googleGagal) {
+    ambilSuara(text).then(src => {
+      if (no !== suaraNo) return;
+      audioBM.src = src; audioBM.onended = end;
+      // Suara lelaki: audio dimainkan lebih rendah nadanya
+      audioBM.preservesPitch = audioBM.mozPreservesPitch = audioBM.webkitPreservesPitch = !lelaki();
+      audioBM.playbackRate = lelaki() ? 0.8 : 1; audioBM.onerror = () => speakPeranti(text, end, no);
+      audioBM.play().catch(() => speakPeranti(text, end, no));
+    }).catch(() => { googleGagal = true; speakPeranti(text, end, no); });
+  } else speakPeranti(text, end, no);
+}
+function speakPeranti(text, end, no) {
+  if (no !== suaraNo) return;
+  const v = suaraPeranti();
+  if (!ttsOK || !v) { setTimeout(end, 300); return; }   // tiada suara BM: teks akan dipaparkan
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = v.lang || "ms-MY"; u.rate = .9;
+  u.pitch = suaraIkutJantina(v) ? 1 : (lelaki() ? .6 : 1.3);   // tiada suara jantina dipilih → ubah nada
+  u.onend = end; u.onerror = end;
+  setTimeout(() => { if (!speechSynthesis.speaking) end(); }, Math.max(4000, text.length * 120));
+  speechSynthesis.speak(u);
+}
+// Ada suara BM yang boleh digunakan? (jika tiada, teks permintaan dipaparkan)
+const adaSuara = () => (modSuara === "google" && !googleGagal) || !!suaraPeranti();
+// Buka kunci audio pada iPhone/iPad dengan sentuhan pertama
+addEventListener("pointerdown", function buka() {
+  audioBM.src = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+  audioBM.play().then(() => audioBM.pause()).catch(() => {});
+  if (ttsOK) speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+  removeEventListener("pointerdown", buka);
+}, { once: true });
+function beep(f = 650) { try { audio = audio || new AudioContext(); const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = f; g.gain.value = .035; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + .12); } catch (e) {} }
+function toast(t) { const el = $("toast"); el.textContent = t; el.classList.remove("hide"); clearTimeout(toastId); toastId = setTimeout(() => el.classList.add("hide"), 2200); }
+
+/* ---------- 6. SKRIN PILIH TAHAP ---------- */
+function showLevels() {
+  state = "map"; stopTimer(); stopSpeech();
+  $("game").classList.add("hide"); $("start").classList.add("hide"); $("levels").classList.remove("hide");
+  const list = $("levelList"); list.innerHTML = "";
+  lukisAvatarSaya(); $("hello").textContent = namaPendek(); $("helloKelas").textContent = murid ? murid.kelas + " • " + murid.sekolah : "";
+  TAHAP.forEach((t, i) => {
+    const unlocked = i === 0 || bintangTerbaik(TAHAP[i - 1].id) >= 2, s = bintangTerbaik(t.id);
+    const b = document.createElement("button"); b.className = "lvl" + (unlocked ? "" : " locked"); b.style.setProperty("--c", t.warna);
+    b.innerHTML = `<span class="ic">${unlocked ? t.ikon : "🔒"}</span><span><b>${t.nama}</b><small>${t.ringkas}</small></span><span class="st">${"⭐".repeat(s)}${"☆".repeat(3 - s)}</span>`;
+    b.onclick = () => unlocked ? startLevel(i) : (beep(250), alert("Dapatkan ⭐⭐ di tahap " + TAHAP[i - 1].nama + " dahulu."));
+    list.appendChild(b);
+  });
+}
+
+/* ---------- 7. MULA TAHAP ---------- */
+function startLevel(i) {
+  stat = { betul1: 0, betul2: 0, gagal: 0, mula: Date.now() };
+  lvlIdx = i; lvl = TAHAP[i]; mission = 0; points = 0; attempts = 0; done.clear(); particles.length = 0;
+  ["levels", "result", "feedback", "talk"].forEach(id => $(id).classList.add("hide"));
+  $("game").classList.remove("hide");
+  $("lvlTag").textContent = lvl.ikon + " " + lvl.nama; updateHud();
+  player.x = W / 2; player.y = H * .83;
+  state = "intro";
+  $("objTitle").textContent = "Tahap " + lvl.nama; $("objIcon").textContent = lvl.ikon;
+  $("objText").textContent = "Ikut anak panah kuning ke watak yang ada tanda 💬, tekan 💬 (atau Enter) untuk bercakap. " + lvl.info;
+  $("objective").classList.remove("hide");
+  speak("Tahap " + lvl.nama + ". " + lvl.info);
+  prefetchSuara(lvl.tugas.map(t => t.q).concat(["Mula! Ikut anak panah kuning.", "Syabas! Respons kamu sesuai.", "Cari watak seterusnya."]));
+}
+function updateHud() { $("mission").textContent = Math.min(mission + 1, 5); $("score").textContent = points; }
+
+/* ---------- 8. BERCAKAP DENGAN WATAK ---------- */
+function interact() {
+  if (state !== "explore") return;
+  if (!active) { toast("Dekati watak yang ada tanda 💬"); return; }
+  if (active !== target()) { beep(300); toast("Bukan giliran " + active.n + ". Cari tanda 💬"); return; }
+  openTalk(true);
+}
+
+function openTalk(first) {
+  state = "talk";
+  const t = lvl.tugas[mission], n = NPC[t.npc];
+  if (first) replayLeft = lvl.ulang;
+  $("tIcon").textContent = n.icon; $("tName").textContent = n.n; $("tTip").textContent = "";
+  // Teks dipapar jika tahap membenarkan, ATAU bunyi tiada (supaya murid tetap boleh bermain)
+  const showText = lvl.teks || muted || !adaSuara();
+  $("tReq").textContent = showText ? "“" + t.q + "”" : "🔊 Dengar permintaan dengan teliti...";
+  updateReplay();
+  // Pilihan jawapan: tahap Mudah/Sederhana, atau jika mikrofon tidak disokong
+  const opts = $("opts"); opts.innerHTML = "";
+  if (lvl.pilihan || !canMic()) {
+    shuffle([t.betul, ...t.salah]).forEach(o => {
+      const b = document.createElement("button"); b.textContent = o;
+      b.onclick = () => { if (state !== "talk") return; b.classList.add(o === t.betul ? "good" : "bad");
+        setTimeout(() => judge(o === t.betul, o === t.betul ? "" : "Jawapan itu tidak sesuai dengan permintaan " + n.n.toLowerCase() + ".", null, { cara: "Pilihan", jawapan: o }), 450); };
+      opts.appendChild(b);
+    });
+  }
+  $("speakBtn").classList.toggle("hide", !recOK);
+  if (!canMic() && !lvl.pilihan) $("tTip").textContent = "Mikrofon tidak disokong pada pelayar ini, jadi pilihan jawapan dipaparkan.";
+  $("talk").classList.remove("hide");
+  setButtons(false);
+  speak(t.q, () => { setButtons(true); if (first) startTimer(); });
+}
+function setButtons(on) { $("talk").querySelectorAll("button").forEach(b => b.disabled = !on); if (on) updateReplay(); }
+function updateReplay() {
+  const unlimited = lvl.ulang > 10;
+  $("replayLeft").textContent = unlimited ? "" : "(" + replayLeft + ")";
+  $("replay").disabled = !unlimited && replayLeft <= 0;
+  $("replay").classList.toggle("hide", muted || !adaSuara());
+}
+$("replay").onclick = () => {
+  if (state !== "talk" || (lvl.ulang <= 10 && replayLeft <= 0)) return;
+  replayLeft--; setButtons(false); speak(lvl.tugas[mission].q, () => setButtons(true));
+};
+
+/* Had masa (tahap Sukar). Masa berhenti semasa suara dibacakan / mikrofon aktif. */
+function startTimer() {
+  stopTimer(); if (!lvl.masa) { $("timer").classList.add("hide"); return; }
+  timeLeft = lvl.masa * 10; $("timer").classList.remove("hide"); $("timerBar").style.width = "100%";
+  timerId = setInterval(() => {
+    if (state !== "talk" || speaking) return;
+    timeLeft--; $("timerBar").style.width = (timeLeft / (lvl.masa * 10) * 100) + "%";
+    if (timeLeft <= 0) { stopTimer(); judge(false, "Masa tamat! Cuba jawab dengan lebih cepat.", null, { cara: "Masa tamat", jawapan: "" }); }
+  }, 100);
+}
+function stopTimer() { clearInterval(timerId); timerId = null; }
+
+/* ---------- 9. MIKROFON ---------- */
+$("speakBtn").onclick = listen;
+function listen() {
+  if (state !== "talk") return;
+  stopSpeech();
+  state = "listen"; $("tTip").textContent = ""; $("mic").classList.remove("hide"); beep(850);
+  let got = false;
+  const back = msg => { $("mic").classList.add("hide"); if (state === "listen") { state = "talk"; $("tTip").textContent = msg; } };
+  try {
+    const R = window.SpeechRecognition || window.webkitSpeechRecognition, r = new R();
+    r.lang = "ms-MY"; r.continuous = false; r.interimResults = false; r.maxAlternatives = 3;
+    r.onresult = e => {
+      got = true; $("mic").classList.add("hide");
+      const alts = [...e.results[0]].map(x => x.transcript);
+      // Semak setiap tafsiran; ambil yang terbaik
+      const res = alts.map(a => nilai(a, lvl.tugas[mission])), k = res.findIndex(x => x.ok), pilih = k > -1 ? k : 0;
+      judge(res[pilih].ok, res[pilih].sebab, alts[pilih], { cara: "Suara", jawapan: alts[pilih] });
+    };
+    r.onerror = e => {
+      got = true;
+      if (e.error === "not-allowed" || e.error === "service-not-allowed" || e.error === "audio-capture") {
+        // Mikrofon disekat → papar pilihan jawapan, tetapi butang 🎙️ kekal untuk cuba semula
+        micBlocked = true; $("mic").classList.add("hide"); state = "talk"; openTalk(false);
+        $("tTip").textContent = panduanMic(e.error); return;
+      }
+      back(e.error === "not-allowed" ? "Benarkan akses mikrofon pada pelayar, kemudian cuba lagi." : "Saya tidak dapat dengar suara kamu. Tekan 🎙️ dan cuba lagi."); };
+    r.onend = () => { if (!got) back("Saya tidak dapat dengar suara kamu. Tekan 🎙️ dan cuba lagi."); };
+    r.start();
+  } catch (e) { back("Cuba tekan 🎙️ sekali lagi."); }
+}
+
+// Panduan ikut punca ralat mikrofon (kod ditunjukkan untuk memudahkan semakan)
+function panduanMic(kod) {
+  const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (kod === "service-not-allowed")
+    return ios ? "Dikte iPhone dimatikan. Hidupkan: Tetapan › Umum › Papan Kekunci › Dayakan Dikte, kemudian buka semula. (kod: " + kod + ")"
+               : "Perkhidmatan suara pelayar ini tidak dibenarkan. Cuba Google Chrome atau Microsoft Edge. (kod: " + kod + ")";
+  if (kod === "audio-capture") return "Mikrofon tidak dijumpai. Semak mikrofon peranti. (kod: " + kod + ")";
+  return (ios ? "Benarkan mikrofon: Tetapan › Apps › Safari › Mikrofon, dan di Safari tekan aA › Tetapan Laman Web › Mikrofon › Benarkan. "
+              : "Benarkan mikrofon: tekan ikon 🔒 di sebelah alamat › Mikrofon › Benarkan, kemudian muat semula. ")
+       + "Sementara itu, pilih jawapan di atas. (kod: " + kod + ")";
+}
+
+/* Semak jawapan suara.
+   - Kata setuju dipadankan sebagai perkataan penuh (elak "ya" dalam "saya").
+   - Kata tindakan boleh berimbuhan (contoh "pulangkan" mengandungi "pulang").
+   - Jawapan yang menolak ("tak nak", "malas") dikira tidak sesuai. */
+function normal(s) { return s.toLowerCase().replace(/[^\p{L}\s]/gu, " ").replace(/\s+/g, " ").trim(); }
+function nilai(teks, t) {
+  const s = " " + normal(teks) + " ", toks = s.trim().split(" ");
+  const ada = w => s.includes(" " + w + " ");
+  const adaAksi = w => w.includes(" ") ? ada(w) : toks.some(k => k.includes(w));
+  const setuju = SETUJU.some(ada), tolak = TOLAK.some(ada);
+  const kumpulan = t.aksi.map(g => g.some(adaAksi)), semuaAksi = kumpulan.every(Boolean);
+  if (tolak) return { ok: false, sebab: "Jawapan kamu menolak permintaan. Jawab dengan sopan dan bersetuju untuk membantu." };
+  // Kata larangan: tindakan yang bertentangan dengan permintaan (contoh "potong barisan").
+  // Dipadankan sebagai perkataan/frasa penuh supaya "beratur" tidak tersilap dikira "berat".
+  if ((t.larangan || []).some(ada)) return { ok: false, sebab: "Tindakan kamu tidak sesuai dengan permintaan. Dengar semula dan sebut tindakan yang betul." };
+  if (lvl.syarat === "mudah") return (setuju || kumpulan.some(Boolean)) ? { ok: true } : { ok: false, sebab: "Cuba mulakan dengan “Baik” atau “Boleh”." };
+  if (!setuju) return { ok: false, sebab: "Mulakan dengan kata setuju, contohnya “Baik, cikgu” atau “Boleh”." };
+  if (!semuaAksi) { const lupa = t.langkah.filter((_, i) => !kumpulan[i]); return { ok: false, sebab: "Sebut juga tindakan kamu: " + lupa.join(" dan ") + "." }; }
+  return { ok: true };
+}
+
+/* ---------- 10. MAKLUM BALAS & MARKAH ---------- */
+function judge(ok, sebab, heard, info) {
+  stopTimer(); $("talk").classList.add("hide"); $("mic").classList.add("hide");
+  state = "feedback"; attempts++;
+  hantarJawapan(ok, info || {});
+  if (ok) attempts === 1 ? stat.betul1++ : stat.betul2++; else if (attempts >= CUBAAN) stat.gagal++;
+  const t = lvl.tugas[mission], heardTxt = heard ? "Kamu sebut: “" + heard + "”. " : "";
+  if (ok) {
+    const m = attempts === 1 ? MARKAH_CUBA1 : MARKAH_CUBA2; points += m; updateHud(); beep(900); confetti();
+    setFeedback("🌟", "Syabas! +" + m, heardTxt + "Respons kamu sesuai dengan permintaan.");
+    speak("Syabas! Respons kamu sesuai."); afterFeedback = next;
+  } else if (attempts < CUBAAN) {
+    beep(250); setFeedback("💡", "Cuba lagi!", heardTxt + sebab);
+    speak(sebab.replace(/[“”]/g, "")); afterFeedback = () => openTalk(false);
+  } else {
+    beep(250); setFeedback("🤝", "Tak apa, kita belajar!", heardTxt + "Contoh jawapan yang sesuai: “" + t.betul + "”");
+    speak("Contoh jawapan yang sesuai. " + t.betul); afterFeedback = next;
+  }
+}
+function setFeedback(icon, title, text) { $("ficon").textContent = icon; $("ftitle").textContent = title; $("ftext").textContent = text; $("feedback").classList.remove("hide"); }
+$("fok").onclick = () => { $("feedback").classList.add("hide"); afterFeedback?.(); };
+
+function next() {
+  done.add(NPC[lvl.tugas[mission].npc]); mission++; attempts = 0; updateHud();
+  if (mission >= 5) return finish();
+  state = "explore"; speak("Cari watak seterusnya.");
+}
+
+function finish() {
+  state = "result"; const max = 5 * MARKAH_CUBA1;
+  const stars = points >= max * .9 ? 3 : points >= max * .6 ? 2 : points > 0 ? 1 : 0;
+  // Kemas kini paparan dahulu, kemudian simpan ke Google Sheet
+  const lama = best[lvl.id] || { bintang: 0, markah: 0 };
+  best[lvl.id] = { bintang: Math.max(lama.bintang, stars), markah: Math.max(lama.markah, points) };
+  simpanKeSheet(stars);
+  $("rTitle").textContent = "TAHAP " + lvl.nama.toUpperCase() + " SELESAI!";
+  $("stars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+  $("final").textContent = points + "/" + max;
+  const m = stars === 3 ? "Cemerlang! Kamu sangat baik mendengar dan memberikan respons."
+          : stars === 2 ? "Bagus! Teruskan berlatih supaya respons kamu semakin tepat."
+          : "Teruskan berlatih mendengar dan menjawab dengan ayat yang sesuai.";
+  $("message").textContent = namaPendek() + ", " + m;
+  const canNext = lvlIdx < TAHAP.length - 1 && bintangTerbaik(lvl.id) >= 2;
+  $("nextLvl").classList.toggle("hide", !canNext);
+  $("result").classList.remove("hide"); if (stars >= 2) confetti();
+  speak("Tahap " + lvl.nama + " selesai. Markah kamu " + points + " daripada " + max + ". " + m);
+}
+$("nextLvl").onclick = () => startLevel(lvlIdx + 1);
+$("again").onclick = () => startLevel(lvlIdx);
+$("toMap").onclick = showLevels;
+
+/* ---------- 11. KAWALAN ---------- */
+$("objok").onclick = () => { $("objective").classList.add("hide"); state = "explore"; speak("Mula! Ikut anak panah kuning."); };
+$("act").onclick = interact;
+$("mute").onclick = () => { muted = !muted; $("mute").textContent = muted ? "🔇" : "🔊"; if (muted) { stopSpeech(); if (state === "talk") { $("tReq").textContent = "“" + lvl.tugas[mission].q + "”"; setButtons(true); updateReplay(); } } };
+
+const K = { ArrowUp: "u", w: "u", W: "u", ArrowDown: "d", s: "d", S: "d", ArrowLeft: "l", a: "l", A: "l", ArrowRight: "r", d: "r", D: "r" };
+addEventListener("keydown", e => { if (e.target.tagName === "INPUT") return; if (K[e.key]) keys[K[e.key]] = 1; if ((e.key === " " || e.key === "Enter") && state === "explore") { e.preventDefault(); interact(); } });
+addEventListener("keyup", e => { if (K[e.key]) keys[K[e.key]] = 0; });
+addEventListener("blur", () => { keys.u = keys.d = keys.l = keys.r = 0; });
+
+function loop() {
+  if (state !== "map" && state !== "start") {
+    if (state === "explore") {
+      const dx = keys.r - keys.l, dy = keys.d - keys.u;
+      if (dx || dy) { const l = Math.hypot(dx, dy); player.x += dx / l * player.s; player.y += dy / l * player.s; }
+    }
+    player.x = Math.max(25, Math.min(W - 25, player.x)); player.y = Math.max(65, Math.min(H - 25, player.y));
+    let near = null, dist = 1e9;
+    NPC.forEach(n => { const p = npcPos(n), d = Math.hypot(player.x - p.x, player.y - p.y); if (d < dist) { dist = d; near = n; } });
+    active = dist < 75 ? near : null;
+    const h = $("hint");
+    if (active && active === target() && state === "explore") { const p = npcPos(active); h.classList.remove("hide"); h.style.left = p.x + "px"; h.style.top = (p.y - 68) + "px"; }
+    else h.classList.add("hide");
+    draw();
+  }
+  requestAnimationFrame(loop);
+}
+
+const joy = $("joy"), stick = $("stick"); let jid = null;
+function joyMove(x, y) { const r = joy.getBoundingClientRect(); let dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height / 2); const l = Math.hypot(dx, dy), m = 32; if (l > m) { dx = dx / l * m; dy = dy / l * m; } stick.style.transform = `translate(${dx}px,${dy}px)`; keys.l = dx < -8; keys.r = dx > 8; keys.u = dy < -8; keys.d = dy > 8; }
+joy.onpointerdown = e => { jid = e.pointerId; joy.setPointerCapture(jid); joyMove(e.clientX, e.clientY); };
+joy.onpointermove = e => { if (e.pointerId === jid) joyMove(e.clientX, e.clientY); };
+joy.onpointerup = joy.onpointercancel = () => { jid = null; keys.u = keys.d = keys.l = keys.r = 0; stick.style.transform = "translate(0,0)"; };
+
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ---------- 12. SAMBUNGAN KE GOOGLE SHEET (Code.gs) ---------- */
+// Panggil fungsi Code.gs sebagai Promise
+// Dalam Apps Script → google.script.run. Di GitHub Pages → fetch ke API_URL (doPost dalam Code.gs).
+const dalamAppsScript = typeof google !== "undefined" && google.script && google.script.run;
+function run(fn, ...args) {
+  if (dalamAppsScript) return new Promise((ok, fail) => {
+    const r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail);
+    if (typeof r[fn] !== "function")   // Code.gs lama / belum deploy versi baharu
+      return fail(new Error("Fungsi " + fn + " tiada dalam Code.gs. Tampal Code.gs terkini, Save, kemudian Deploy versi baharu."));
+    r[fn](...args);
+  });
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(API_URL))
+    return Promise.reject(new Error("API_URL belum ditetapkan dalam index.html (URL Web App berakhir /exec)."));
+  // text/plain → tiada "preflight" CORS, jadi Apps Script boleh menerima permintaan
+  return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn, args }) })
+    .then(r => r.json())
+    .then(j => { if (!j.ok) throw new Error(j.error || "Ralat pelayan"); return j.data; })
+    .catch(e => { throw new Error(e.message === "Failed to fetch" ? "Tiada sambungan ke pelayan. Semak internet atau tetapan Web App (Who has access: Anyone)." : e.message); });
+}
+function loading(on, txt) { $("loadTxt").textContent = txt || "Sila tunggu..."; $("loading").classList.toggle("hide", !on); }
+
+// Setiap jawapan dihantar ke sheet JAWAPAN (tidak mengganggu permainan)
+function hantarJawapan(ok, info) {
+  if (!murid) return;
+  const t = lvl.tugas[mission];
+  run("logJawapan", {
+    id: murid.id, tahap: lvl.nama, misi: mission + 1, watak: NPC[t.npc].n, permintaan: t.q,
+    cara: info.cara || "", jawapan: info.jawapan || "", betul: ok, cubaan: attempts
+  }).catch(() => {});
+}
+
+// Markah tahap disimpan ke sheet REKOD
+function simpanKeSheet(stars) {
+  const info = $("saveInfo"); info.textContent = "💾 Menyimpan markah...";
+  run("simpanKeputusan", {
+    id: murid.id, tahap: lvl.id, markah: points, bintang: stars,
+    betul1: stat.betul1, betul2: stat.betul2, gagal: stat.gagal, masa: Math.round((Date.now() - stat.mula) / 1000)
+  }).then(r => {
+    if (r && r.ok) { best = r.terbaik || best; info.textContent = "✅ Markah disimpan."; }
+    else info.textContent = "⚠️ " + ((r && r.mesej) || "Markah tidak disimpan.");
+  }).catch(() => info.textContent = "⚠️ Markah tidak disimpan. Semak sambungan internet.");
+}
+
+/* ---------- 13. DAFTAR & LOG MASUK ---------- */
+function msg(t, ok) { const m = $("authMsg"); m.textContent = t || ""; m.className = "msg" + (ok ? " ok" : ""); }
+function tab(login) {
+  $("tabLogin").classList.toggle("on", login); $("tabDaftar").classList.toggle("on", !login);
+  $("paneLogin").classList.toggle("hide", !login); $("paneDaftar").classList.toggle("hide", login); msg("");
+  (login ? $("cari") : $("dNama")).focus();
+}
+$("tabLogin").onclick = () => tab(true);
+$("tabDaftar").onclick = () => tab(false);
+
+function masuk(r) {
+  murid = r.murid; best = r.terbaik || {}; micBlocked = false;
+  msg(""); showLevels();
+  if (!loopOn) { loopOn = true; requestAnimationFrame(loop); }
+  speak("Selamat datang, " + namaPendek() + ". Pilih tahap.");
+}
+
+// Log masuk: taip nama → senarai padanan → tekan nama sendiri
+let cariId = null, cariNo = 0;
+$("cari").addEventListener("input", () => {
+  clearTimeout(cariId);
+  const teks = $("cari").value.trim(), box = $("hasilCari");
+  if (teks.length < 2) { box.innerHTML = ""; $("cariInfo").classList.remove("hide"); return; }
+  cariId = setTimeout(() => {
+    const no = ++cariNo; box.innerHTML = "<small>🔎 Mencari...</small>";
+    run("cariMurid", teks).then(list => {
+      if (no !== cariNo) return;   // abaikan carian lama
+      box.innerHTML = ""; $("cariInfo").classList.add("hide");
+      if (!list.length) { box.innerHTML = "<small>Nama tidak dijumpai. Semak ejaan atau tekan 📝 DAFTAR.</small>"; return; }
+      list.forEach(m => {
+        const b = document.createElement("button"); b.className = "pilihNama";
+        const nm = document.createElement("b"); nm.textContent = m.nama;
+        const sm = document.createElement("small"); sm.textContent = m.kelas + " • " + m.sekolah;
+        b.append(nm, sm); b.onclick = () => pilihMurid(m.id); box.appendChild(b);
+      });
+    }).catch(e => box.innerHTML = "<small>⚠️ " + (e.message || "Ralat sambungan") + "</small>");
+  }, 400);
+});
+function pilihMurid(id) {
+  loading(true, "Log masuk...");
+  run("logMasuk", id).then(r => { loading(false); r.ok ? masuk(r) : msg(r.mesej); })
+    .catch(e => { loading(false); msg("Ralat: " + e.message); });
+}
+
+// Daftar murid baharu
+$("btnDaftar").onclick = () => {
+  const nama = $("dNama").value.trim(), kelas = $("dKelas").value.trim(), sek = $("dSekolah").value.trim();
+  if (nama.length < 3) return msg("Sila isi nama penuh.");
+  if (!kelas) return msg("Sila isi kelas.");
+  if (sek.length < 3) return msg("Sila isi nama sekolah.");
+  $("btnDaftar").disabled = true; loading(true, "Mendaftar...");
+  run("daftarMurid", nama, kelas, sek, avatarDaftar).then(r => {
+    loading(false); $("btnDaftar").disabled = false;
+    if (r.ok) { ["dNama", "dKelas"].forEach(id => $(id).value = ""); return masuk(r); }
+    msg(r.mesej);
+    if (r.wujud) { // sudah berdaftar → tawar log masuk terus
+      const b = document.createElement("button"); b.className = "pilihNama";
+      b.textContent = "🔑 Log masuk sebagai " + r.murid.nama; b.onclick = () => pilihMurid(r.murid.id);
+      $("authMsg").appendChild(document.createElement("br")); $("authMsg").appendChild(b);
+    }
+  }).catch(e => { loading(false); $("btnDaftar").disabled = false; msg("Ralat: " + e.message); });
+};
+["dNama", "dKelas", "dSekolah"].forEach(id => $(id).addEventListener("keydown", e => { if (e.key === "Enter") $("btnDaftar").click(); }));
+
+// Log keluar
+$("btnKeluar").onclick = () => {
+  murid = null; best = {}; state = "start"; stopSpeech();
+  $("levels").classList.add("hide"); $("game").classList.add("hide"); $("start").classList.remove("hide");
+  $("cari").value = ""; $("hasilCari").innerHTML = ""; $("cariInfo").classList.remove("hide"); tab(true);
+};
+
+// Papan Juara (10 terbaik di sekolah yang sama)
+$("btnJuara").onclick = () => {
+  loading(true, "Memuatkan Papan Juara...");
+  run("papanJuara", murid.sekolah).then(list => {
+    loading(false); $("juaraSek").textContent = murid.sekolah;
+    const ol = $("juaraList"); ol.innerHTML = "";
+    if (!list.length) ol.innerHTML = "<li>Belum ada markah. Jadilah yang pertama! 🚀</li>";
+    list.forEach((m, i) => {
+      const li = document.createElement("li"); if (m.nama === murid.nama) li.className = "me";
+      li.textContent = (["🥇", "🥈", "🥉"][i] || (i + 1) + ".") + " " + m.nama + " (" + m.kelas + ") — " + m.markah;
+      ol.appendChild(li);
+    });
+    $("juara").classList.remove("hide");
+  }).catch(e => { loading(false); alert("Ralat: " + e.message); });
+};
+$("juaraTutup").onclick = () => $("juara").classList.add("hide");
+
+/* ---------- 14. PILIHAN SUARA ---------- */
+function labelSuara() {
+  $("btnSuara").textContent = modSuara === "google" ? "🗣️ SUARA: BM MALAYSIA" : "🗣️ SUARA: PERANTI";
+}
+$("btnSuara").onclick = () => {
+  modSuara = modSuara === "google" ? "peranti" : "google"; googleGagal = false;
+  try { localStorage.setItem("msc_suara", modSuara); } catch (e) {}
+  labelSuara();
+  if (modSuara === "peranti" && !suaraPeranti()) toast2("Peranti ini tiada suara Bahasa Melayu. Teks permintaan akan dipaparkan.");
+  speak("Ini contoh suara. Selamat datang ke Misi Sekolah Ceria.");
+};
+function toast2(t) { alert(t); }
+labelSuara();
+
+/* ---------- 15. AVATAR: DAFTAR & TUKAR ---------- */
+let avatarDaftar = "m1", avatarBaru = "m1";
+binaGridAvatar($("avDaftar"), avatarDaftar, id => avatarDaftar = id);
+$("btnAvatar").onclick = () => { avatarBaru = murid.avatar; binaGridAvatar($("avTukar"), avatarBaru, id => avatarBaru = id); $("avBox").classList.remove("hide"); };
+$("avBatal").onclick = () => $("avBox").classList.add("hide");
+$("avSimpan").onclick = () => {
+  const lama = murid.avatar; murid.avatar = avatarBaru; lukisAvatarSaya(); $("avBox").classList.add("hide");
+  run("simpanAvatar", murid.id, avatarBaru).then(r => { if (!r.ok) { murid.avatar = lama; lukisAvatarSaya(); alert(r.mesej); } })
+    .catch(() => { murid.avatar = lama; lukisAvatarSaya(); alert("Avatar tidak disimpan. Semak sambungan internet."); });
+};
+
+/* ---------- 16. BUTANG KELUAR DARI TAHAP ---------- */
+let stateSebelum = null;
+$("keluarTahap").onclick = () => {
+  if (state === "listen" || state === "pause") return;
+  stateSebelum = state; state = "pause"; stopSpeech();     // permainan & had masa dihentikan seketika
+  $("exitBox").classList.remove("hide");
+};
+$("exitTidak").onclick = () => { $("exitBox").classList.add("hide"); state = stateSebelum;
+  if (state === "talk") { setButtons(true); if (lvl.masa && !timerId) startTimer(); }
+};
+$("exitYa").onclick = () => {
+  ["exitBox", "talk", "feedback", "result", "objective", "mic"].forEach(id => $(id).classList.add("hide"));
+  showLevels();
+};
+
+/* =========================================================
+   17. HALAMAN GURU — rekod & markah murid
+   Kata laluan disemak oleh Code.gs (tidak disimpan dalam kod ini).
+   ========================================================= */
+let guruPw = "", dataG = null, susunK = "jumlah", susunNaik = false;
+const NAMA_TAHAP = { mudah: "Mudah", sederhana: "Sederhana", sukar: "Sukar" };
+const el = (tag, txt, cls) => { const e = document.createElement(tag); if (txt != null) e.textContent = txt; if (cls) e.className = cls; return e; };
+
+$("btnGuru").onclick = () => { $("guruPw").value = ""; $("guruMsg").textContent = ""; $("guruBox").classList.remove("hide"); $("guruPw").focus(); };
+$("guruBatal").onclick = () => $("guruBox").classList.add("hide");
+$("guruPw").addEventListener("keydown", e => { if (e.key === "Enter") $("guruMasuk").click(); });
+$("guruMasuk").onclick = () => {
+  const pw = $("guruPw").value; if (!pw) return;
+  loading(true, "Menyemak...");
+  run("loginGuru", pw).then(() => { guruPw = pw; $("guruBox").classList.add("hide"); bukaGuru(); })
+    .catch(e => { loading(false); $("guruMsg").textContent = e.message || "Kata laluan salah."; });
+};
+function bukaGuru() {
+  stopSpeech(); ["start", "levels", "game"].forEach(id => $(id).classList.add("hide")); $("guru").classList.remove("hide");
+  muatGuru();
+}
+function muatGuru() {
+  loading(true, "Memuatkan rekod murid...");
+  run("dataGuru", guruPw).then(d => { loading(false); dataG = d; isiPenapis(); paparGuru(); })
+    .catch(e => { loading(false); alert("Ralat: " + e.message); });
+}
+$("gMuat").onclick = muatGuru;
+$("gKeluar").onclick = () => { guruPw = ""; dataG = null; $("guru").classList.add("hide"); $("start").classList.remove("hide"); };
+
+function isiPenapis() {
+  const isi = (sel, label, nilai) => { const v = sel.value; sel.innerHTML = ""; sel.appendChild(new Option(label, ""));
+    [...new Set(nilai)].sort().forEach(x => sel.appendChild(new Option(x, x))); sel.value = [...sel.options].some(o => o.value === v) ? v : ""; };
+  isi($("fSekolah"), "Semua sekolah", dataG.murid.map(m => m.sekolah));
+  isi($("fKelas"), "Semua kelas", dataG.murid.filter(m => !$("fSekolah").value || m.sekolah === $("fSekolah").value).map(m => m.kelas));
+}
+["fSekolah", "fKelas", "fStatus"].forEach(id => $(id).onchange = () => { if (id === "fSekolah") isiPenapis(); paparGuru(); });
+$("fCari").oninput = () => paparGuru();
+document.querySelectorAll("#guru thead th[data-k]").forEach(th => th.onclick = () => {
+  const k = th.dataset.k; susunNaik = susunK === k ? !susunNaik : (k === "nama" || k === "kelas"); susunK = k; paparGuru();
+});
+
+function muridTapis() {
+  const sek = $("fSekolah").value, kls = $("fKelas").value, st = $("fStatus").value, cari = $("fCari").value.trim().toUpperCase();
+  const nilai = (m, k) => NAMA_TAHAP[k] ? (m.tahap[k] ? m.tahap[k].markah : -1) : m[k];
+  return dataG.murid.filter(m => (!sek || m.sekolah === sek) && (!kls || m.kelas === kls) &&
+      (!st || (st === "main" ? m.main > 0 : m.main === 0)) && (!cari || m.nama.includes(cari)))
+    .sort((a, b) => { const x = nilai(a, susunK), y = nilai(b, susunK); const c = typeof x === "string" ? x.localeCompare(y) : x - y; return susunNaik ? c : -c; });
+}
+
+function selTahap(m, k) {
+  const t = m.tahap[k]; if (!t) return el("td", "—");
+  const td = el("td"); td.append(el("b", t.markah + " "), el("span", "⭐".repeat(t.bintang) || "☆"), el("small", "  (" + t.kali + "x)"));
+  return td;
+}
+function paparGuru() {
+  const r = dataG.ringkas;
+  $("kDaftar").textContent = r.daftar; $("kMain").textContent = r.bermain; $("kBelum").textContent = r.daftar - r.bermain;
+  $("kCubaan").textContent = r.cubaan; $("kPurata").textContent = r.purata;
+  const body = $("gBody"); body.innerHTML = "";
+  const list = muridTapis();
+  if (!list.length) { const tr = el("tr"); const td = el("td", "Tiada murid untuk dipaparkan."); td.colSpan = 9; tr.appendChild(td); body.appendChild(tr); }
+  list.forEach((m, i) => {
+    const tr = el("tr"); tr.appendChild(el("td", i + 1));
+    const nm = el("td", null, "nm"); const cv = document.createElement("canvas"); cv.width = 56; cv.height = 62;
+    drawAvatar(cv.getContext("2d"), 28, 38, m.avatar, .75, false); nm.append(cv, el("span", m.nama)); nm.onclick = () => butiran(m);
+    tr.append(nm, el("td", m.kelas), selTahap(m, "mudah"), selTahap(m, "sederhana"), selTahap(m, "sukar"));
+    const j = el("td"); j.appendChild(m.main ? el("b", m.jumlah) : el("span", "Belum main", "tg none")); tr.appendChild(j);
+    tr.append(el("td", m.main), el("td", m.terakhir || "—"));
+    body.appendChild(tr);
+  });
+  const sb = $("gSoalan"); sb.innerHTML = "";
+  if (!dataG.soalan.length) { const tr = el("tr"); const td = el("td", "Belum ada jawapan."); td.colSpan = 6; tr.appendChild(td); sb.appendChild(tr); }
+  dataG.soalan.forEach(q => {
+    const tr = el("tr"); tr.append(el("td", q.tahap), el("td", q.watak), el("td", q.permintaan, "wrap"), el("td", q.betul), el("td", q.salah),
+      el("td", q.peratus + "%", "pct " + (q.peratus < 50 ? "low" : q.peratus < 80 ? "mid" : "high")));
+    sb.appendChild(tr);
+  });
+}
+
+function butiran(m) {
+  loading(true, "Memuatkan jawapan " + m.nama + "...");
+  run("dataGuruMurid", guruPw, m.id).then(d => {
+    loading(false);
+    $("dNamaMurid").textContent = m.nama; $("dInfo").textContent = m.kelas + " • " + m.sekolah + " • Daftar: " + m.daftar + " • Log masuk: " + m.login + " kali";
+    const rb = $("dRekod"); rb.innerHTML = "";
+    if (!d.rekod.length) { const tr = el("tr"); const td = el("td", "Belum menamatkan mana-mana tahap."); td.colSpan = 7; tr.appendChild(td); rb.appendChild(tr); }
+    d.rekod.forEach(r => { const tr = el("tr"); tr.append(el("td", r.tarikh), el("td", NAMA_TAHAP[r.tahap] || r.tahap), el("td", r.markah + "/50"),
+      el("td", "⭐".repeat(r.bintang) || "—"), el("td", r.betul1 + " / " + r.betul2), el("td", r.gagal), el("td", Math.floor(r.masa / 60) + "m " + (r.masa % 60) + "s")); rb.appendChild(tr); });
+    const jb = $("dJawapan"); jb.innerHTML = "";
+    if (!d.jawapan.length) { const tr = el("tr"); const td = el("td", "Belum ada jawapan."); td.colSpan = 7; tr.appendChild(td); jb.appendChild(tr); }
+    d.jawapan.forEach(j => { const tr = el("tr"); const k = el("td"); k.appendChild(el("span", j.keputusan === "BETUL" ? "✔ BETUL" : "✘ SALAH", "tg " + (j.keputusan === "BETUL" ? "ok" : "no")));
+      tr.append(el("td", j.tarikh), el("td", j.tahap), el("td", j.watak), el("td", j.permintaan, "wrap"), el("td", j.cara), el("td", j.jawapan || "—", "wrap"), k); jb.appendChild(tr); });
+    $("gDetail").classList.remove("hide");
+  }).catch(e => { loading(false); alert("Ralat: " + e.message); });
+}
+$("dTutup").onclick = () => $("gDetail").classList.add("hide");
+
+// Muat turun CSV (boleh dibuka dalam Excel)
+$("gCsv").onclick = () => {
+  const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+  const t = (m, k) => m.tahap[k] ? m.tahap[k].markah : "";
+  const rows = [["Nama", "Kelas", "Sekolah", "Mudah", "Sederhana", "Sukar", "Jumlah", "Kali main", "Terakhir main"]]
+    .concat(muridTapis().map(m => [m.nama, m.kelas, m.sekolah, t(m, "mudah"), t(m, "sederhana"), t(m, "sukar"), m.jumlah, m.main, m.terakhir]));
+  const blob = new Blob(["\ufeff" + rows.map(r => r.map(q).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "Rekod_Misi_Sekolah_Ceria.csv"; a.click();
+};
+
+// Pautan terus: tambah ?page=guru pada URL web app untuk terus ke log masuk guru
+try {
+  if (dalamAppsScript) google.script.url.getLocation(loc => { if (loc && loc.parameter && loc.parameter.page === "guru") $("btnGuru").click(); });
+  else if (new URLSearchParams(location.search).get("page") === "guru") $("btnGuru").click();
+} catch (e) {}
+</script>
+</body>
+</html>
